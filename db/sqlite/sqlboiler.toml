@@ -1,0 +1,32 @@
+[sqlite3]
+# go test in the roomdb/sqlite package will create this
+dbname = "testrun/TestSchema/roomdb"
+blacklist = ["gorp_migrations"]
+
+# 重写驱动程序推断的类型marshal pub_key strings ala @asdjjasd as feed references.
+[[types]]
+  [types.match]
+    type = "string"
+    #tables = ['fallback_auth']
+    name = "pub_key"
+    nullable = false
+
+  [types.replace]
+    type = "roomdb.DBFeedRef"
+
+  [types.imports]
+    third_party = ['"github.com/calvindc/d2b"']
+
+# convert from database-stored integers to the type roomdb.RoomConfig
+[[types]]
+  [types.match]
+    name = "privacyMode"
+    tables = ['config']
+    type = "int64"
+    nullable = false
+
+  [types.replace]
+    type = "roomdb.PrivacyMode"
+
+  [types.imports]
+    third_party = ['"github.com/calvindc/d2b"']

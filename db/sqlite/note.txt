@@ -1,0 +1,55 @@
+ORM处理数据库操作的重复行性，减少重复性代码
+github.com/volatiletech/sqlboiler/v4
+github.com/volatiletech/sqlboiler-sqlite3
+
+迁移使用
+https://github.com/rubenv/sql-migrate
+
+// Hardcoded strings in memory:
+migrations := &migrate.MemoryMigrationSource{
+    Migrations: []*migrate.Migration{
+        &migrate.Migration{
+            Id:   "123",
+            Up:   []string{"CREATE TABLE people (id int)"},
+            Down: []string{"DROP TABLE people"},
+        },
+    },
+}
+
+// OR: Read migrations from a folder:
+migrations := &migrate.FileMigrationSource{
+    Dir: "db/migrations",
+}
+
+// OR: Use migrations from a packr box
+migrations := &migrate.PackrMigrationSource{
+    Box: packr.New("migrations", "./migrations"),
+}
+
+// OR: Use pkger which implements `http.FileSystem`
+migrationSource := &migrate.HttpFileSystemMigrationSource{
+    FileSystem: pkger.Dir("/db/migrations"),
+}
+
+// OR: Use migrations from bindata:
+migrations := &migrate.AssetMigrationSource{
+    Asset:    Asset,
+    AssetDir: AssetDir,
+    Dir:      "migrations",
+}
+
+// OR: Read migrations from a `http.FileSystem`
+migrationSource := &migrate.HttpFileSystemMigrationSource{
+    FileSystem: httpFS,
+}
+
+db, err := sql.Open("sqlite3", filename)
+if err != nil {
+    // Handle errors!
+}
+
+n, err := migrate.Exec(db, "sqlite3", migrations, migrate.Up)
+if err != nil {
+    // Handle errors!
+}
+fmt.Printf("Applied %d migrations!\n", n)

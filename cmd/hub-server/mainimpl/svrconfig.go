@@ -24,6 +24,10 @@ var SvrCfg_EnableUnixSock_I = "disable or enable the UNIX socket RPC interface"
 var SvrCfg_RepoDir = ".web3rpchub"
 var SvrCfg_RepoDir_I = "where to put the log and indexes"
 
+// SvrCfg_LogDir
+var SvrCfg_LogDir = "logs"
+var SvrCfg_LogDir_I = "where to write debug output to"
+
 // SvrCfg_ListenAddrMetricsPprof as prometheus
 var SvrCfg_ListenAddrMetricsPprof = "localhost:8002"
 var SvrCfg_ListenAddrMetricsPprof_I = "prometheus, listen addr for metrics and pprof HTTP server"
