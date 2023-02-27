@@ -142,5 +142,6 @@ func initRunConfig() error {
 
 func Runhubsvr() error {
 	initRunConfig()
+
 	return nil
 }
