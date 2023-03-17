@@ -1,4 +1,4 @@
-package network
+package hubstat
 
 import (
 	"sync"
@@ -7,8 +7,9 @@ import (
 	"sort"
 
 	"github.com/calvindc/Web3RpcHub/internal/broadcasts"
-	kitlog "github.com/go-kit/kit/log"
-	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/go-kit/kit/log"
+
 	"go.cryptoscope.co/muxrpc/v2"
 )
 
@@ -31,7 +32,7 @@ func (rsm hubStatMap) AsList() []string {
 type HubNetManager struct {
 	hubMu    *sync.Mutex
 	hubStats hubStatMap
-	logger   kitlog.Logger
+	logger   log.Logger
 
 	endpointsUpdater        broadcasts.EndpointsLegacyEmitter
 	endpointsbroadcaster    *broadcasts.EndpointsBroadcastLegacy
@@ -40,7 +41,7 @@ type HubNetManager struct {
 }
 
 // NewHubNetManager
-func NewHubNetManager(log kitlog.Logger) *HubNetManager {
+func NewHubNetManager(log log.Logger) *HubNetManager {
 	ee, eb := broadcasts.NewEndpointsEmitter()
 	pe, pb := broadcasts.NewParticipantsEmitter()
 	return &HubNetManager{

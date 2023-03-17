@@ -1,4 +1,4 @@
-package internal
+package keys
 
 import (
 	"fmt"
@@ -12,17 +12,17 @@ import (
 
 	"strings"
 
-	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/calvindc/Web3RpcHub/internal/refs"
 	"go.cryptoscope.co/secretstream/secrethandshake"
 )
 
-const (
+/*const (
 	RefAlgoFeed       = "ed25519"
 	RefAlgoMessage    = "sha256"
 	RefAlgoBlob       = RefAlgoMessage
 	SuffixAlgoFeed    = ".ed25519"
 	SuffixAlgoMessage = ".sha256"
-)
+)*/
 
 type KeyPair struct {
 	Feed refs.FeedRef
@@ -37,7 +37,7 @@ type protocolSecret struct {
 }
 
 func IsValidFeedFormat(r refs.FeedRef) error {
-	if r.Algo() != RefAlgoFeed {
+	if r.Algo() != refs.RefAlgoFeedWEB3R {
 		return fmt.Errorf("Keys: unsupported feed format:%s", r.Algo())
 	}
 	return nil
@@ -48,7 +48,7 @@ func NewKeyPair(ir io.Reader) (*KeyPair, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Keys: error building key pair: %w", err)
 	}
-	feed, err := refs.NewFeedRefFromBytes(kp.Public[:], RefAlgoFeed)
+	feed, err := refs.NewFeedRefFromBytes(kp.Public[:], refs.RefAlgoFeedWEB3R)
 	if err != nil {
 		return nil, fmt.Errorf("Keys: error building key pair: %w", err)
 	}
@@ -109,10 +109,10 @@ func SaveKeyPair(kp KeyPair, path string) error {
 // EncodeKeyPairAsJSON serializes key 文件
 func EncodeKeyPairAsJSON(kp KeyPair, w io.Writer) error {
 	var sec = protocolSecret{
-		Curve:   RefAlgoFeed,
+		Curve:   refs.RefEncryptCurve,
 		ID:      kp.Feed,
-		Public:  base64.StdEncoding.EncodeToString(kp.Pair.Public[:]) + SuffixAlgoFeed,
-		Private: base64.StdEncoding.EncodeToString(kp.Pair.Secret[:]) + SuffixAlgoFeed,
+		Public:  base64.StdEncoding.EncodeToString(kp.Pair.Public[:]) + refs.SuffixAlgoFeedWEB3R,
+		Private: base64.StdEncoding.EncodeToString(kp.Pair.Secret[:]) + refs.SuffixAlgoFeedWEB3R,
 	}
 	err := json.NewEncoder(w).Encode(sec)
 	if err != nil {

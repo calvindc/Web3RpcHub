@@ -1,6 +1,10 @@
 [sqlite3]
 # go test in the roomdb/sqlite package will create this
-dbname = "testrun/TestSchema/roomdb"
+dbname = "hub.db"
+# Removes migrations table, the name column from the addresses table, and
+# secret_col of any table from being generated. Foreign keys that reference tables
+# or columns that are no longer generated because of whitelists or blacklists may
+# cause problems.
 blacklist = ["gorp_migrations"]
 
 # 重写驱动程序推断的类型marshal pub_key strings ala @asdjjasd as feed references.
@@ -12,12 +16,12 @@ blacklist = ["gorp_migrations"]
     nullable = false
 
   [types.replace]
-    type = "roomdb.DBFeedRef"
+    type = "db.DBFeedRef"
 
   [types.imports]
-    third_party = ['"github.com/calvindc/d2b"']
+    third_party = ['"github.com/calvindc/Web3RpcHub/db"']
 
-# convert from database-stored integers to the type roomdb.RoomConfig
+# convert from database-stored integers to the type db.HubConfig
 [[types]]
   [types.match]
     name = "privacyMode"
@@ -26,7 +30,7 @@ blacklist = ["gorp_migrations"]
     nullable = false
 
   [types.replace]
-    type = "roomdb.PrivacyMode"
+    type = "db.PrivacyMode"
 
   [types.imports]
-    third_party = ['"github.com/calvindc/d2b"']
+    third_party = ['"github.com/calvindc/Web3RpcHub/db"']

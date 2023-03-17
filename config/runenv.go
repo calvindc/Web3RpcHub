@@ -1,4 +1,4 @@
-package mainimpl
+package config
 
 // SvrCfg_PrintVersion
 var SvrCfg_PrintVersion = true

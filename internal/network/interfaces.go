@@ -14,7 +14,7 @@ import (
 	"io"
 	"net/http"
 
-	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/calvindc/Web3RpcHub/internal/refs"
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/netwrap"
 	"go.cryptoscope.co/secretstream"

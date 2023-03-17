@@ -10,21 +10,20 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 )
 
-/*var migrationSource = &migrate.EmbedFileSystemMigrationSource{
-	FileSystem: migrations,
-	Root:       "migrations",
-}*/
-
 var migrationSource = &migrate.FileMigrationSource{
-	Dir: "db/sqlite/migrations",
+	Dir: "migrations",
 }
 
 type Database struct {
 	db *sql.DB
 }
 
-func OpenDB(r repository.GetPathInterface) (*Database, error) {
-	dbFileName := r.GetPath("hubdb")
+func (dt Database) Close() error {
+	return dt.db.Close()
+}
+
+func OpenDB(r repository.Interface) (*Database, error) {
+	dbFileName := r.GetPath("hub.db")
 
 	if dir := filepath.Dir(dbFileName); dir != "" {
 		err := os.MkdirAll(dir, 0700)
@@ -32,6 +31,8 @@ func OpenDB(r repository.GetPathInterface) (*Database, error) {
 			return nil, fmt.Errorf("db: failed to create folder for database (%q): %w", dir, err)
 		}
 	}
+	dbFileName += "?_foreign_keys=on"
+
 	db, err := sql.Open("sqlite3", dbFileName)
 	if err != nil {
 		return nil, fmt.Errorf("db: failed to open sqlite database: %w", err)
@@ -62,7 +63,11 @@ func OpenDB(r repository.GetPathInterface) (*Database, error) {
 		}
 	}()*/
 
-	return &Database{}, nil
+	hubdb := &Database{
+		db: db,
+	}
+
+	return hubdb, nil
 }
 
 func transact(db *sql.DB, fn func(tx *sql.Tx) error) (err error) {

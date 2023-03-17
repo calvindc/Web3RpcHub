@@ -1,4 +1,4 @@
-package errorslist
+package frequently
 
 import (
 	"errors"

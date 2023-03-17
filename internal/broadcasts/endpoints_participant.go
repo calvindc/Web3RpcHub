@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/calvindc/Web3RpcHub/internal/errorslist"
-	refs "github.com/ssbc/go-ssb-refs"
+	"github.com/calvindc/Web3RpcHub/internal/refs"
 )
 
 type participantsSink EndpointsBroadcastParticipants

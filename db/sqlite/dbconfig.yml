@@ -1,0 +1,7 @@
+#sql-migrate new base...
+#sql-migrate status
+##sql-migrate up /down
+development:
+  dialect: sqlite3
+  datasource: hub.db
+  dir: migrations

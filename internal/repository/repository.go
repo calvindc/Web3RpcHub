@@ -6,11 +6,13 @@ type repo struct {
 	basePath string
 }
 
-type GetPathInterface interface {
+var _ Interface = repo{}
+
+type Interface interface {
 	GetPath(...string) string
 }
 
-func New(basePath string) interface{} {
+func New(basePath string) Interface {
 	return repo{
 		basePath: basePath,
 	}
