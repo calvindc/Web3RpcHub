@@ -6,9 +6,8 @@ import (
 	"fmt"
 
 	"github.com/calvindc/Web3RpcHub/db"
-	"go.cryptoscope.co/muxrpc/v2"
-	"github.com/calvindc/Web3RpcHub/hubstat"
 	"github.com/calvindc/Web3RpcHub/internal/network"
+	"go.cryptoscope.co/muxrpc/v2"
 )
 
 func (svr *HubServe) initNetwork() error {
@@ -42,5 +41,5 @@ func (svr *HubServe) initNetwork() error {
 		return &svr.public, nil
 	}
 
-	opts := network.
+	//opts := network.
 }
