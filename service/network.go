@@ -42,4 +42,5 @@ func (svr *HubServe) initNetwork() error {
 	}
 
 	//opts := network.
+	return nil
 }
