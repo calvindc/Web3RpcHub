@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/calvindc/Web3RpcHub/c-muxrpc/codec"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/codec"
 	"go.cryptoscope.co/luigi"
 )
 
@@ -85,6 +85,7 @@ func newJSONPacket(stream bool, req int32, v interface{}) (*codec.Packet, error)
 
 var trueBytes = []byte{'t', 'r', 'u', 'e'}
 
+// newEndErrPacket with body equ true
 func newEndOkayPacket(req int32, stream bool) codec.Packet {
 	pkt := codec.Packet{
 		Req:  req,
@@ -97,6 +98,7 @@ func newEndOkayPacket(req int32, stream bool) codec.Packet {
 	return pkt
 }
 
+// newEndErrPacket with body equ error
 func newEndErrPacket(req int32, stream bool, err error) (codec.Packet, error) {
 	body, err := json.Marshal(CallError{
 		Message: err.Error(),

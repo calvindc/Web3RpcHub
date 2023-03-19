@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"bytes"
@@ -11,11 +11,12 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/calvindc/Web3RpcHub/c-muxrpc/codec"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/codec"
 	"github.com/karrick/bufpool"
 )
 
 // ReadFn is what a ByteSource needs for it's ReadFn. The passed reader is only valid during the call to it.
+// ReadFn
 type ReadFn func(r io.Reader) error
 
 type ByteSourcer interface {
@@ -57,8 +58,7 @@ func newByteSource(ctx context.Context, pool bufpool.FreeList) *ByteSource {
 	return bs
 }
 
-// Cancel stops reading and terminates the request.
-// Sometimes we want to close a query early before it is drained.
+// Cancel 中断能读取并终止请求.
 func (bs *ByteSource) Cancel(err error) {
 	bs.mu.Lock()
 	defer bs.mu.Unlock()

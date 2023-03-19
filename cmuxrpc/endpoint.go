@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"context"
@@ -6,6 +6,11 @@ import (
 	"net"
 )
 
+// https://github.com/maxbrunsfeld/counterfeiter
+
+// go:generate counterfeiter -o fakeendpoint.go . Endpoint
+
+// Endpoint allows calling functions on the RPC peer
 type Endpoint interface {
 	Async(ctx context.Context, ret interface{}, tipe RequestEncoding, method Method, args ...interface{}) error
 	Source(ctx context.Context, tipe RequestEncoding, method Method, args ...interface{}) (*ByteSource, error)

@@ -1,8 +1,17 @@
 package service
 
+import (
+	"fmt"
+	"net"
+
+	"github.com/calvindc/Web3RpcHub/cmuxrpc"
+	"github.com/calvindc/Web3RpcHub/db"
+	"github.com/calvindc/Web3RpcHub/internal/network"
+)
+
 func (svr *HubServe) initNetwork() error {
 
-	/*mHandle := func(conn net.Conn) (muxrpc.Handler, error) {
+	mHandle := func(conn net.Conn) (cmuxrpc.Handler, error) {
 		svr.closedMutex.Lock()
 		defer svr.closedMutex.Unlock()
 
@@ -29,7 +38,7 @@ func (svr *HubServe) initNetwork() error {
 		}
 		// for community + open modes, allow all connections
 		return &svr.public, nil
-	}*/
+	}
 
 	//opts := network.
 	return nil

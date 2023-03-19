@@ -9,8 +9,7 @@ import (
 
 type Writer struct {
 	mu sync.Mutex
-
-	w io.Writer
+	w  io.Writer
 }
 
 // NewWriter creates a new packet-stream writer

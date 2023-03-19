@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"encoding/json"
@@ -87,7 +87,7 @@ func isAlreadyClosed(err error) bool {
 		return false
 	}
 
-	if stderr.Is(err, io.EOF) || stderr.Is(err, os.ErrClosed) || stderr.Is(err, io.ErrClosedPipe) {
+	if errors.Is(err, io.EOF) || errors.Is(err, os.ErrClosed) || errors.Is(err, io.ErrClosedPipe) {
 		return true
 	}
 

@@ -14,6 +14,7 @@ import (
 	"encoding/base64"
 	"os"
 
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/typemux"
 	"github.com/calvindc/Web3RpcHub/config"
 	"github.com/calvindc/Web3RpcHub/db"
 	"github.com/calvindc/Web3RpcHub/hubstat"
@@ -24,7 +25,6 @@ import (
 	"github.com/calvindc/Web3RpcHub/internal/repository"
 	"github.com/calvindc/Web3RpcHub/internal/signalbridge"
 	"github.com/go-kit/kit/log"
-	"go.cryptoscope.co/muxrpc/v2/typemux"
 )
 
 type HubServe struct {

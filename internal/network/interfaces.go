@@ -15,6 +15,7 @@ import (
 	"net/http"
 
 	"github.com/calvindc/Web3RpcHub/internal/refs"
+
 	"go.cryptoscope.co/muxrpc/v2"
 	"go.cryptoscope.co/netwrap"
 	"go.cryptoscope.co/secretstream"

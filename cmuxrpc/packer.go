@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/calvindc/Web3RpcHub/c-muxrpc/codec"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/codec"
 )
 
 // NewPacker takes an io.ReadWriteCloser and returns a Packer.

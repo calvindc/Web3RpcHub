@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/calvindc/Web3RpcHub/c-muxrpc/codec"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/codec"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/karrick/bufpool"
@@ -146,6 +146,7 @@ func marshalCallArgs(args []interface{}) ([]byte, error) {
 }
 
 var (
+	//编译前检查rcp 实现了Endpoint和Server
 	_ Endpoint = (*rpc)(nil)
 	_ Server   = (*rpc)(nil)
 )

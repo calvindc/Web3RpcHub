@@ -1,4 +1,4 @@
-package c_muxrpc
+package cmuxrpc
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/calvindc/Web3RpcHub/c-muxrpc/codec"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/codec"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 )
