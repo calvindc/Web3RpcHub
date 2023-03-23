@@ -11,7 +11,7 @@ import (
 
 	"sort"
 
-	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/calvindc/Web3RpcHub/refs"
 )
 
 // ErrNotFound

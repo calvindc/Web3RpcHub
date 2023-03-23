@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/calvindc/Web3RpcHub/internal/keys"
-	"github.com/calvindc/Web3RpcHub/internal/netwrap"
 	"github.com/calvindc/Web3RpcHub/internal/repository"
+	"github.com/calvindc/Web3RpcHub/netwrap"
 	"github.com/go-kit/log"
 )
 

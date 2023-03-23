@@ -21,10 +21,11 @@ import (
 	"github.com/calvindc/Web3RpcHub/internal/frequently"
 	"github.com/calvindc/Web3RpcHub/internal/keys"
 	"github.com/calvindc/Web3RpcHub/internal/network"
-	"github.com/calvindc/Web3RpcHub/internal/netwrap"
 	"github.com/calvindc/Web3RpcHub/internal/repository"
 	"github.com/calvindc/Web3RpcHub/internal/signalbridge"
+	"github.com/calvindc/Web3RpcHub/netwrap"
 	"github.com/go-kit/kit/log"
+	"github.com/go-kit/log/level"
 )
 
 type HubServe struct {
@@ -54,8 +55,8 @@ type HubServe struct {
 	preSecureWrappers  []netwrap.ConnWrapper //所有呼叫过的连接管理器
 	postSecureWrappers []netwrap.ConnWrapper //目前有效的连接管理器
 
-	public typemux.HandlerMux //public路由 muxrpc.HandlerMux
-	master typemux.HandlerMux //master路由 muxrpc.HandlerMux
+	public typemux.HandlerMux //public路由 cmuxrpc.HandlerMux
+	master typemux.HandlerMux //master路由 cmuxrpc.HandlerMux
 
 	Members        db.MembersService          //成员管理
 	DeniedKeys     db.DeniedKeysService       //屏蔽管理
@@ -129,6 +130,50 @@ func StartHubServ(hMembers db.MembersService, hDeniedKeys db.DeniedKeysService, 
 
 	svr.netInfo.HubID = svr.keyPair.Feed
 
-	//svr.initHanders()
+	svr.initHandlers()
 
+	// init peer's network conn
+	err = svr.initNetwork()
+	if err != nil {
+		return nil, err
+	}
+
+	if svr.loadUnixSock {
+		if err := svr.initUnixSock(); err != nil {
+			return nil, err
+		}
+	}
+
+	if svr.loadUnixSock {
+		if err := svr.initUnixSock(); err != nil {
+			return nil, err
+		}
+	}
+	return &svr, nil
+
+}
+
+func (svr *HubServe) ShotDown() error {
+	svr.closedMutex.Lock()
+	defer svr.closedMutex.Unlock()
+
+	if svr.closed {
+		return svr.closeErr
+	}
+	closeEvt := log.With(svr.logger, "event", "tunserv closing")
+	svr.closed = true
+
+	if svr.Network != nil {
+		if err := svr.Network.Close(); err != nil {
+			svr.closeErr = fmt.Errorf("sbot: failed to close own network node: %w", err)
+			return svr.closeErr
+		}
+		svr.Network.GetConnTracker().CloseAll()
+		level.Debug(closeEvt).Log("msg", "connections closed")
+	}
+	if err := svr.closers.Close(); err != nil {
+		svr.closeErr = err
+		return svr.closeErr
+	}
+	return nil
 }

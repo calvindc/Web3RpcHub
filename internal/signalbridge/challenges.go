@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/calvindc/Web3RpcHub/refs"
 )
 
 // challengeLength 访问hub使用256位的nonces

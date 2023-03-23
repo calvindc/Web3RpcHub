@@ -12,17 +12,9 @@ import (
 
 	"strings"
 
-	"github.com/calvindc/Web3RpcHub/internal/refs"
-	"go.cryptoscope.co/secretstream/secrethandshake"
+	"github.com/calvindc/Web3RpcHub/refs"
+	"github.com/calvindc/Web3RpcHub/secretstream/secrethandshake"
 )
-
-/*const (
-	RefAlgoFeed       = "ed25519"
-	RefAlgoMessage    = "sha256"
-	RefAlgoBlob       = RefAlgoMessage
-	SuffixAlgoFeed    = ".ed25519"
-	SuffixAlgoMessage = ".sha256"
-)*/
 
 type KeyPair struct {
 	Feed refs.FeedRef
@@ -37,8 +29,8 @@ type protocolSecret struct {
 }
 
 func IsValidFeedFormat(r refs.FeedRef) error {
-	if r.Algo() != refs.RefAlgoFeedWEB3R {
-		return fmt.Errorf("Keys: unsupported feed format:%s", r.Algo())
+	if r.Rope() != refs.RefFeedWEB3R {
+		return fmt.Errorf("Keys: unsupported feed format:%s", r.Rope())
 	}
 	return nil
 }
@@ -48,7 +40,7 @@ func NewKeyPair(ir io.Reader) (*KeyPair, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Keys: error building key pair: %w", err)
 	}
-	feed, err := refs.NewFeedRefFromBytes(kp.Public[:], refs.RefAlgoFeedWEB3R)
+	feed, err := refs.NewFeedRefFromBytes(kp.Public[:], refs.RefFeedWEB3R)
 	if err != nil {
 		return nil, fmt.Errorf("Keys: error building key pair: %w", err)
 	}
@@ -111,8 +103,8 @@ func EncodeKeyPairAsJSON(kp KeyPair, w io.Writer) error {
 	var sec = protocolSecret{
 		Curve:   refs.RefEncryptCurve,
 		ID:      kp.Feed,
-		Public:  base64.StdEncoding.EncodeToString(kp.Pair.Public[:]) + refs.SuffixAlgoFeedWEB3R,
-		Private: base64.StdEncoding.EncodeToString(kp.Pair.Secret[:]) + refs.SuffixAlgoFeedWEB3R,
+		Public:  base64.StdEncoding.EncodeToString(kp.Pair.Public[:]) + refs.SuffixFeedWEB3R,
+		Private: base64.StdEncoding.EncodeToString(kp.Pair.Secret[:]) + refs.SuffixFeedWEB3R,
 	}
 	err := json.NewEncoder(w).Encode(sec)
 	if err != nil {
@@ -132,12 +124,12 @@ func ParseKeyPair(r io.Reader) (*KeyPair, error) {
 		return nil, err
 	}
 
-	public, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(s.Public, SuffixAlgoFeed))
+	public, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(s.Public, refs.SuffixFeedWEB3R))
 	if err != nil {
 		return nil, fmt.Errorf("Keys: parse base64 decode of public part failed: %w", err)
 	}
 
-	private, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(s.Private, SuffixAlgoFeed))
+	private, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(s.Private, refs.SuffixFeedWEB3R))
 	if err != nil {
 		return nil, fmt.Errorf("Keys: parse base64 decode of private part failed: %w", err)
 	}

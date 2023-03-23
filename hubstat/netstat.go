@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/calvindc/Web3RpcHub/cmuxrpc"
 	"github.com/calvindc/Web3RpcHub/internal/broadcasts"
-	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/calvindc/Web3RpcHub/refs"
 	"github.com/go-kit/kit/log"
-
-	"go.cryptoscope.co/muxrpc/v2"
 )
 
 //hubStatMap 如果管理图谱结构，修改muxrpc.Endpoint为map[ref.feed]muxrpc.Endpoint
-type hubStatMap map[string]muxrpc.Endpoint
+type hubStatMap map[string]cmuxrpc.Endpoint
 
 func (rsm hubStatMap) AsList() []string {
 	memberList := make([]string, 0, len(rsm))
@@ -34,16 +33,16 @@ type HubNetManager struct {
 	hubStats hubStatMap
 	logger   log.Logger
 
-	endpointsUpdater        broadcasts.EndpointsLegacyEmitter
-	endpointsbroadcaster    *broadcasts.EndpointsBroadcastLegacy
-	participantsUpdater     broadcasts.EndpointsBroadcastParticipantsEmitter
-	participantsbroadcaster *broadcasts.EndpointsBroadcastParticipants
+	endpointsUpdater        broadcasts.EndpointsEmitter
+	endpointsbroadcaster    *broadcasts.EndpointsBroadcast
+	participantsUpdater     broadcasts.AttendantsEmitter
+	participantsbroadcaster *broadcasts.AttendantsBroadcast
 }
 
 // NewHubNetManager
 func NewHubNetManager(log log.Logger) *HubNetManager {
 	ee, eb := broadcasts.NewEndpointsEmitter()
-	pe, pb := broadcasts.NewParticipantsEmitter()
+	pe, pb := broadcasts.NewAttendantsEmitter()
 	return &HubNetManager{
 		hubMu:                   new(sync.Mutex),
 		hubStats:                make(hubStatMap),
@@ -55,11 +54,11 @@ func NewHubNetManager(log log.Logger) *HubNetManager {
 	}
 }
 
-func (hm *HubNetManager) RegisterLegacyEndpoints(sink broadcasts.EndpointsLegacyEmitter) {
+func (hm *HubNetManager) RegisterLegacyEndpoints(sink broadcasts.EndpointsEmitter) {
 	hm.endpointsbroadcaster.Register(sink)
 }
 
-func (hm *HubNetManager) RegisterParticipantsEndpoints(sink broadcasts.EndpointsBroadcastParticipantsEmitter) {
+func (hm *HubNetManager) RegisterAttendantsUpdates(sink broadcasts.AttendantsEmitter) {
 	hm.participantsbroadcaster.Register(sink)
 }
 
@@ -86,7 +85,7 @@ func (m *HubNetManager) ListAsRefs() []refs.FeedRef {
 }
 
 // AddEndpoint adds the endpoint to the hub
-func (hm *HubNetManager) AddEndpoint(who refs.FeedRef, edp muxrpc.Endpoint) {
+func (hm *HubNetManager) AddEndpoint(who refs.FeedRef, edp cmuxrpc.Endpoint) {
 	hm.hubMu.Lock()
 	// add ref to to the room map
 	hm.hubStats[who.String()] = edp
@@ -113,7 +112,7 @@ func (hm *HubNetManager) Remove(who refs.FeedRef) {
 
 // AlreadyAdded returns true if the peer was already added to the room.
 // if it isn't it will be added.
-func (hm *HubNetManager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) bool {
+func (hm *HubNetManager) AlreadyAdded(who refs.FeedRef, edp cmuxrpc.Endpoint) bool {
 	hm.hubMu.Lock()
 	var currentMembers []string
 	// if the peer didn't call tunnel.announce()
@@ -135,7 +134,7 @@ func (hm *HubNetManager) AlreadyAdded(who refs.FeedRef, edp muxrpc.Endpoint) boo
 }
 
 // Has returns true and the endpoint if the peer is in the room
-func (hm *HubNetManager) Has(who refs.FeedRef) (muxrpc.Endpoint, bool) {
+func (hm *HubNetManager) Has(who refs.FeedRef) (cmuxrpc.Endpoint, bool) {
 	hm.hubMu.Lock()
 	// add ref to to the room map
 	edp, has := hm.hubStats[who.String()]

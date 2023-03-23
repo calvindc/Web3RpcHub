@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/calvindc/Web3RpcHub/internal/keys"
-	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/calvindc/Web3RpcHub/refs"
 )
 
 func DefaultKeyPair(r Interface) (*keys.KeyPair, error) {
@@ -49,7 +49,7 @@ func newKeyPair(r Interface, name, algo string, seed io.Reader) (*keys.KeyPair, 
 			return nil, err
 		}
 	}
-	if algo != string(refs.RefAlgoFeedWEB3R) && algo != string(refs.RefAlgoFeedGabby) { //  enums would be nice
+	if algo != string(refs.RefFeedWEB3R) && algo != string(refs.RefFeedGabby) {
 		return nil, fmt.Errorf("invalid feed refrence algo")
 	}
 	if _, err := keys.LoadKeyPair(secPath); err == nil {

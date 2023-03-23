@@ -14,17 +14,16 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/calvindc/Web3RpcHub/internal/refs"
-
-	"go.cryptoscope.co/muxrpc/v2"
-	"go.cryptoscope.co/netwrap"
-	"go.cryptoscope.co/secretstream"
+	"github.com/calvindc/Web3RpcHub/cmuxrpc"
+	"github.com/calvindc/Web3RpcHub/netwrap"
+	"github.com/calvindc/Web3RpcHub/refs"
+	"github.com/calvindc/Web3RpcHub/secretstream"
 )
 
 // Network supplies all network related functionalitiy
 type Network interface {
 	Connect(ctx context.Context, addr net.Addr) error
-	Serve(context.Context, ...muxrpc.HandlerWrapper) error
+	Serve(context.Context, ...cmuxrpc.HandlerWrapper) error
 	GetListenAddr() net.Addr
 
 	GetAllEndpoints() []EndpointStat
@@ -44,26 +43,24 @@ type Network interface {
 
 // Endpoints returns the connected endpoint for the passed feed, or false if there is none
 type Endpoints interface {
-	GetEndpointFor(refs.FeedRef) (muxrpc.Endpoint, bool)
+	GetEndpointFor(refs.FeedRef) (cmuxrpc.Endpoint, bool)
 }
 
 // ConnTracker decides if connections should be established and keeps track of them
 type ConnTracker interface {
-	// Active returns true and since when a peer connection is active
+	// Active returns 节点连接的active状态
 	Active(net.Addr) (bool, time.Duration)
 
-	// OnAccept receives a new connection as an argument.
-	// If it decides to accept it, it returns true and a context that will be canceled once it should shut down
-	// If it decides to deny it, it returns false (and a nil context)
+	// OnAccept tracker接收一个新连接.如果同意接受,返回true和context，否则返回false和nil
 	OnAccept(context.Context, net.Conn) (bool, context.Context)
 
-	// OnClose notifies the tracker that a connection was closed
+	// OnClose 通知tracker一个连接已经断开
 	OnClose(conn net.Conn) time.Duration
 
-	// Count returns the number of open connections
+	// Count 返回已打开连接的数量
 	Count() uint
 
-	// CloseAll closes all tracked connections
+	// CloseAll 关闭所有处于tracked状态的连接
 	CloseAll()
 }
 
@@ -72,7 +69,7 @@ type EndpointStat struct {
 	ID       *refs.FeedRef
 	Addr     net.Addr
 	Since    time.Duration
-	Endpoint muxrpc.Endpoint
+	Endpoint cmuxrpc.Endpoint
 }
 
 // HubEndpoint

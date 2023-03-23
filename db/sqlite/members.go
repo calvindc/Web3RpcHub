@@ -8,7 +8,7 @@ import (
 
 	"github.com/calvindc/Web3RpcHub/db"
 	"github.com/calvindc/Web3RpcHub/db/sqlite/models"
-	"github.com/calvindc/Web3RpcHub/internal/refs"
+	"github.com/calvindc/Web3RpcHub/refs"
 	"github.com/mattn/go-sqlite3"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
