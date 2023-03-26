@@ -13,9 +13,9 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-// WithUNIXSocket enables listening for muxrpc connections on a unix socket files ($repo/socket).
+// RegUNIXSocket enables listening for muxrpc connections on a unix socket files ($repo/socket).
 // This socket is not encrypted or authenticated since access to it is mediated by filesystem ownership.
-func WithUNIXSocket(yes bool) Option {
+func RegUNIXSocket(yes bool) Option {
 	return func(s *HubServe) error {
 		s.loadUnixSock = yes
 		return nil
@@ -25,7 +25,7 @@ func WithUNIXSocket(yes bool) Option {
 // creates the UNIX socket file listener for local usage
 func (s *HubServe) initUnixSock() error {
 	if s.keyPair == nil {
-		return fmt.Errorf("roomsrv/unixsock: keypair is nil. please use unixSocket with LateOption")
+		return fmt.Errorf("[service/unixsock]: keypair is nil. please use unixSocket with LateOption")
 	}
 	spoofWrapper := frequently.SpoofRemoteAddress(s.keyPair.Feed.PubKey())
 
@@ -36,7 +36,7 @@ func (s *HubServe) initUnixSock() error {
 	c, err := net.Dial("unix", sockPath)
 	if err == nil {
 		c.Close()
-		return fmt.Errorf("roomsrv: repo already in use, socket accepted connection")
+		return fmt.Errorf("[service/unixsock]: repo already in use, socket accepted connection")
 	}
 	os.Remove(sockPath)
 	os.MkdirAll(filepath.Dir(sockPath), 0700)

@@ -59,6 +59,27 @@ const (
 	ModeRestricted
 )
 
+func ParsePrivacyMode(val string) PrivacyMode {
+	switch val {
+	case "ModeOpen":
+		fallthrough
+	case "open":
+		return ModeOpen
+
+	case "ModeCommunity":
+		fallthrough
+	case "community":
+		return ModeCommunity
+
+	case "ModeRestricted":
+		fallthrough
+	case "restricted":
+		return ModeRestricted
+	default:
+		return ModeUnknown
+	}
+}
+
 // IsValid
 func (pm PrivacyMode) IsValid() error {
 	if pm == ModeUnknown || pm > ModeRestricted {

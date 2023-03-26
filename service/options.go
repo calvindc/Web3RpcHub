@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/calvindc/Web3RpcHub/internal/keys"
+	"github.com/calvindc/Web3RpcHub/internal/network"
 	"github.com/calvindc/Web3RpcHub/internal/repository"
 	"github.com/calvindc/Web3RpcHub/netwrap"
 	"github.com/go-kit/log"
@@ -70,7 +71,7 @@ func RegLogger(log log.Logger) Option {
 
 func RegContext(ctx context.Context) Option {
 	return func(s *HubServe) error {
-		s.servCtx, s.servShutDown = context.RegCancel(ctx)
+		s.servCtx, s.servShutDown = context.WithCancel(ctx)
 		return nil
 	}
 }
@@ -82,7 +83,7 @@ func RegDialer(dial netwrap.Dialer) Option {
 	}
 }
 
-func RegNetworkConnTracker(ct hubstate.ConnTracker) Option {
+func RegNetworkConnTracker(ct network.ConnTracker) Option {
 	return func(s *HubServe) error {
 		s.networkConnTracker = ct
 		return nil

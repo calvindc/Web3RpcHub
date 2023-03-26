@@ -40,7 +40,7 @@ func (s *Server) ConnWrapper() netwrap.ConnWrapper {
 
 		errconn := make(chan error)
 		go func() {
-			errconn <- secrethandshake.Server(state, conn)
+			errconn <- secrethandshake.ServerShake(state, conn)
 			close(errconn)
 		}()
 

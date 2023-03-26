@@ -72,6 +72,8 @@ type EndpointStat struct {
 	Endpoint cmuxrpc.Endpoint
 }
 
+// --------------------------------------------------------------
+
 // HubEndpoint
 type HubEndpoint struct {
 	HubID                  refs.FeedRef

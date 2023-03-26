@@ -15,7 +15,16 @@ var migrationSource = &migrate.FileMigrationSource{
 }
 
 type Database struct {
-	db *sql.DB
+	db            *sql.DB
+	AuthFallback  AuthFallback
+	AuthWitToken  AuthWitToken
+	Members       Members
+	Aliases       Aliases
+	Invites       Invites
+	Config        Config
+	DeniedKeys    DeniedKeys
+	PinnedNotices PinnedNotices
+	Notices       Notices
 }
 
 func (dt Database) Close() error {

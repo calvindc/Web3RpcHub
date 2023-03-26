@@ -36,7 +36,7 @@ func GenEdKeyPair(r io.Reader) (*EdKeyPair, error) {
 }
 
 // Client shakes hands using the cryptographic identity specified in s using conn in the client role
-func Client(state *State, conn io.ReadWriter) (err error) {
+func ClientShack(state *State, conn io.ReadWriter) (err error) {
 	// send challenge
 	_, err = conn.Write(state.createChallenge())
 	if err != nil {
@@ -60,7 +60,7 @@ func Client(state *State, conn io.ReadWriter) (err error) {
 	if err != nil {
 		return ErrProcessing{where: "sending client hello", cause: err}
 	}
-	//time.Sleep(time.Second)
+
 	// recv authentication vector
 	boxedSig := make([]byte, ServerAuthLength)
 	_, err = io.ReadFull(conn, boxedSig)
@@ -78,7 +78,7 @@ func Client(state *State, conn io.ReadWriter) (err error) {
 }
 
 // Server shakes hands using the cryptographic identity specified in s using conn in the server role
-func Server(state *State, conn io.ReadWriter) (err error) {
+func ServerShake(state *State, conn io.ReadWriter) (err error) {
 	// recv challenge
 	challenge := make([]byte, ChallengeLength)
 	_, err = io.ReadFull(conn, challenge)

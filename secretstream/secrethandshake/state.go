@@ -28,7 +28,7 @@ type State struct {
 
 	hello []byte
 
-	aBob, bAlice [32]byte // better name? helloAlice, helloBob?
+	aBob, bAlice [32]byte // handshack meg
 }
 
 // EdKeyPair is a keypair for use with github.com/agl/ed25519
@@ -251,7 +251,7 @@ func (s *State) createServerAccept() []byte {
 	okay := ed25519.Sign(s.local.Secret, sigMsg.Bytes())
 
 	var out = make([]byte, 0, len(okay)+16)
-	var nonce [24]byte // always 0?
+	var nonce [24]byte
 	return box.SealAfterPrecomputation(out, okay[:], &nonce, &s.secret3)
 }
 
@@ -270,7 +270,7 @@ func (s *State) verifyServerAccept(boxedOkay []byte) bool {
 	secHasher.Write(s.bAlice[:])
 	copy(s.secret3[:], secHasher.Sum(nil))
 
-	var nonce [24]byte // always 0?
+	var nonce [24]byte
 	sig := make([]byte, 0, len(boxedOkay)-16)
 	sig, openOk := box.OpenAfterPrecomputation(nil, boxedOkay, &nonce, &s.secret3)
 
@@ -307,8 +307,6 @@ func (s *State) Remote() []byte {
 
 // GetBoxstreamEncKeys returns the encryption key and nonce suitable for boxstream
 func (s *State) GetBoxstreamEncKeys() ([32]byte, [24]byte) {
-	// TODO: error before cleanSecrets() has been called?
-
 	var enKey [32]byte
 	h := sha256.New()
 	h.Write(s.secret[:])
@@ -322,8 +320,6 @@ func (s *State) GetBoxstreamEncKeys() ([32]byte, [24]byte) {
 
 // GetBoxstreamDecKeys returns the decryption key and nonce suitable for boxstream
 func (s *State) GetBoxstreamDecKeys() ([32]byte, [24]byte) {
-	// TODO: error before cleanSecrets() has been called?
-
 	var deKey [32]byte
 	h := sha256.New()
 	h.Write(s.secret[:])

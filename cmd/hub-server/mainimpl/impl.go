@@ -1,24 +1,30 @@
 package mainimpl
 
 import (
-	"os/user"
-
-	kitlog "github.com/go-kit/kit/log"
-	"github.com/go-kit/kit/log/level"
-
-	"os"
-
-	"flag"
-
-	"context"
-	"encoding/base64"
-	"fmt"
 	"net"
 	"net/http"
 	"path/filepath"
+	"strings"
+
+	"fmt"
+
+	"context"
+
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/calvindc/Web3RpcHub/cmuxrpc/debug"
 	"github.com/calvindc/Web3RpcHub/config"
+	"github.com/calvindc/Web3RpcHub/db"
+	"github.com/calvindc/Web3RpcHub/db/sqlite"
+	"github.com/calvindc/Web3RpcHub/internal/network"
+	"github.com/calvindc/Web3RpcHub/internal/repository"
+	"github.com/calvindc/Web3RpcHub/internal/signalbridge"
+	"github.com/calvindc/Web3RpcHub/service"
+	log2 "github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 )
 
 var (
@@ -30,12 +36,18 @@ var (
 	Builddate  = ""
 )
 var (
-	log kitlog.Logger
+	log log2.Logger
 )
 
 var (
+	repoDir          string
 	flagprintversion bool
 )
+
+type Cfdata struct {
+	deAppKey []byte
+	portHttp int
+}
 
 /*var app = cli.App{
 	Name:    os.Args[0],
@@ -57,93 +69,116 @@ var (
 	Before:
 }*/
 
-func checkAndLog(err error) {
+func CheckAndLog(err error) {
 	if err != nil {
 		level.Error(log).Log("event", "fatal error", "err", err)
 
 	}
 }
 
-func initRunConfig() error {
-	u, err := user.Current()
-	checkAndLog(err)
+func Runhubsvr() error {
+	cfdata, err := initRunConfig()
 	if err != nil {
-		level.Error(log).Log("event", "fatal error", "err", err)
-	}
-	flag.BoolVar(&config.SvrCfg_PrintVersion, "print-version", config.SvrCfg_PrintVersion, config.SvrCfg_PrintVersion_I)
-	flag.StringVar(&config.SvrCfg_SecretHandsharkeKey, "secret-handsharke-key", config.SvrCfg_SecretHandsharkeKey, config.SvrCfg_SecretHandsharkeKey_I)
-	flag.StringVar(&config.SvrCofg_ListenAddrShsMux, "listen-addr-shsmux", config.SvrCofg_ListenAddrShsMux, config.SvrCofg_ListenAddrShsMux_I)
-	flag.StringVar(&config.SvrCfg_ListenAddrHttp, "listen-addr-http", config.SvrCfg_ListenAddrHttp, config.SvrCfg_ListenAddrHttp_I)
-	flag.BoolVar(&config.SvrCfg_EnableUnixSock, "enable-unixsock", config.SvrCfg_EnableUnixSock, config.SvrCfg_EnableUnixSock_I)
-	flag.StringVar(&config.SvrCfg_RepoDir, "repo-dir", filepath.Join(u.HomeDir, config.SvrCfg_RepoDir), config.SvrCfg_RepoDir_I)
-	flag.StringVar(&config.SvrCfg_LogDir, "log-dir", config.SvrCfg_LogDir, config.SvrCfg_LogDir_I)
-	flag.StringVar(&config.SvrCfg_ListenAddrMetricsPprof, "listen-addr-metrics-pprof", config.SvrCfg_ListenAddrMetricsPprof, config.SvrCfg_ListenAddrMetricsPprof_I)
-	flag.StringVar(&config.SvrCfg_HttpsDomain, "https-domain", config.SvrCfg_HttpsDomain, config.SvrCfg_HttpsDomain_I)
-	flag.Func("hub-mode", config.SvrCfg_HubMode_I, config.SvrCfg_HubMode)
-	flag.BoolVar(&config.SvrCfg_AliasesAsSubdomains, "aliases-as-subdomains", config.SvrCfg_AliasesAsSubdomains, config.SvrCfg_AliasesAsSubdomains_I)
-	flag.Parse()
-	if config.SvrCfg_LogDir != "" {
-		logDir := filepath.Join(config.SvrCfg_RepoDir, config.SvrCfg_LogDir)
-		os.MkdirAll(logDir, 0700)
-		logFileName := fmt.Sprintf("%s-%s.log", filepath.Base(os.Args[0]), time.Now().Format("2006-01-02_15-04"))
-		logFile, err := os.Create(filepath.Join(logDir, logFileName))
-		if err != nil {
-			panic(err)
-		}
-		log = kitlog.NewJSONLogger(kitlog.NewSyncWriter(logFile))
-	} else {
-		log = kitlog.NewLogfmtLogger(os.Stderr)
+		return err
 	}
 
-	if config.SvrCfg_PrintVersion {
-		level.Info(log).Log("version", Appversion, "commit", Commit, "goVersion", Goversion, "builddate", Builddate)
-	}
-
-	if config.SvrCfg_HttpsDomain == "" {
-		if !development {
-			return fmt.Errorf("https-domain can't be empty. See '%s -h' for a full list of options", os.Args[0])
-		}
-		config.SvrCfg_HttpsDomain = "localhost"
-	}
-
-	_, portMuxRPC, err := net.SplitHostPort(config.SvrCofg_ListenAddrShsMux)
-	if err != nil {
-		return fmt.Errorf("invalid muxrpc listener: %w", err)
-	}
-	_, err = net.LookupPort("tcp", portMuxRPC)
-	if err != nil {
-		return fmt.Errorf("invalid tcp port for muxrpc listener: %w", err)
-	}
-
-	_, portHTTPStr, err := net.SplitHostPort(config.SvrCfg_ListenAddrHttp)
-	if err != nil {
-		return fmt.Errorf("invalid http listener: %w", err)
-	}
-	_, err = net.LookupPort("tcp", portHTTPStr)
-	if err != nil {
-		return fmt.Errorf("invalid tcp port for muxrpc listener: %w", err)
-	}
-
-	_, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, err = base64.StdEncoding.DecodeString(config.SvrCfg_SecretHandsharkeKey)
-	if err != nil {
-		return fmt.Errorf("secret-handshake appkey is invalid base64: %w", err)
+	opts := []service.Option{
+		service.RegLogger(log),
+		service.RegAppKey(cfdata.deAppKey),
+		service.RegRepoPath(config.SvrCfg_RepoDir),
+		service.RegUNIXSocket(config.SvrCfg_EnableUnixSock),
+	}
+	if config.SvrCfg_LogDir != "" {
+		opts = append(opts, service.RegPostSecureConnWrapper(func(conn net.Conn) (net.Conn, error) {
+			parts := strings.Split(conn.RemoteAddr().String(), "|")
+			if len(parts) != 2 {
+				return conn, nil
+			}
+			cmuxrpcDumpDir := filepath.Join(config.SvrCfg_RepoDir, config.SvrCfg_LogDir, parts[1], parts[0])
+			return debug.WrapDump(cmuxrpcDumpDir, conn)
+		}))
 	}
 
+	//系统运行性能监视
 	if config.SvrCfg_ListenAddrMetricsPprof != "" {
 		go func() {
 			level.Debug(log).Log("starting", "metrics", "addr", config.SvrCfg_ListenAddrMetricsPprof)
 			err := http.ListenAndServe(config.SvrCfg_ListenAddrMetricsPprof, nil)
-			checkAndLog(err)
+			CheckAndLog(err)
 		}()
 	}
-	return nil
-}
 
-func Runhubsvr() error {
-	initRunConfig()
+	// 新建一个hub-key
+	r := repository.New(config.SvrCfg_RepoDir)
+	keyPair, err := repository.DefaultKeyPair(r)
+	CheckAndLog(err)
+	opts = append(opts, service.RegKeyPair(keyPair))
+
+	//hub network endpoint
+	networkInfo := network.HubEndpoint{
+		HubID:                  keyPair.Feed,
+		ListenAddressMUXRPC:    config.SvrCofg_ListenAddrShsMux,
+		HttpsDomain:            config.SvrCfg_HttpsDomain,
+		HttpsPort:              uint(cfdata.portHttp),
+		UseAliasesAsSubdomains: config.SvrCfg_AliasesAsSubdomains,
+		Development:            development,
+	}
+
+	// setup a db
+	hubdb, err := sqlite.OpenDB(r)
+	if err != nil {
+		return fmt.Errorf("failed to init database: %w", err)
+	}
+
+	signal_bridge := signalbridge.NewSignalBridge()
+	if config.SvrCfg_HubMode == db.ModeUnknown {
+		hubdb.Config.SetPrivacyMode(ctx, config.SvrCfg_HubMode)
+	}
+
+	//启动shs+cmuxrpc服务
+	hubsrv, err := service.StartHubServ(hubdb.Members, hubdb.DeniedKeys, hubdb.Aliases, hubdb.AuthWitToken,
+		signal_bridge, hubdb.Config, networkInfo, opts...)
+	if err != nil {
+		return fmt.Errorf("failed to instantiate hub server: %w", err)
+	}
+
+	//启动HTTP listener
+	httpLis, err := net.Listen("tcp", config.SvrCfg_ListenAddrHttp)
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		sig := <-c
+		level.Warn(log).Log("event", "killed", "msg", "received signal, shutting down", "signal", sig.String())
+		cancel()
+
+		time.Sleep(3 * time.Second)
+		err := hubsrv.ShotDown()
+		CheckAndLog(err)
+
+		time.Sleep(3 * time.Second)
+		os.Exit(0)
+	}()
+
+	// HTTPS重定向和Cryptographic Service Provider
+	secureMiddleware := SetupSecureMiddleware(config.SvrCfg_HttpsDomain)
+
+	// HTTP请求限流
+	httpRateLimiter, err := ThrottleHttp()
+	if err != nil {
+		return err
+	}
+
+	webHandler := &http.ServeMux{}
+	var httpHandler http.Handler //add all /mux_user_api_handler(1,2,3...)
+	httpHandler = httpRateLimiter.RateLimit(webHandler)
+	httpHandler = secureMiddleware.Handler(httpHandler)
+	httpHandler = hubsrv.Network.WebsockHandler(httpHandler)
+
+	level.Info(log).Log(
+		"event", "serving", "running...", httpLis.Addr().String())
 	/*fmt.Println("12")
 	go func() {
 		fiveDays := 3 * time.Second

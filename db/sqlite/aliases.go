@@ -14,7 +14,7 @@ import (
 )
 
 // compiler 断言，确保结构完全填充AliasesDBService接口内的方法
-var _ db.AliasesDBService = (*Aliases)(nil)
+var _ db.AliasesService = (*Aliases)(nil)
 
 type Aliases struct {
 	db *sql.DB

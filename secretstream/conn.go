@@ -44,6 +44,7 @@ type Conn struct {
 
 	boxer   *boxstream.Boxer
 	unboxer *boxstream.Unboxer
+
 	recvMsg []byte // last message read from unboxer
 
 	// public keys

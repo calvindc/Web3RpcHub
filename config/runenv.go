@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/calvindc/Web3RpcHub/db"
+)
+
 // SvrCfg_PrintVersion
 var SvrCfg_PrintVersion = true
 var SvrCfg_PrintVersion_I = "print version number, build date, git commit, and compiler version"
@@ -13,11 +17,11 @@ var SvrCofg_ListenAddrShsMux = ":8008"
 var SvrCofg_ListenAddrShsMux_I = "address to listen on for secret handshake + muxrpc"
 
 // SvrCfg_SecretHandsharkeKey
-var SvrCfg_ListenAddrHttp = "8001"
+var SvrCfg_ListenAddrHttp = ":8001"
 var SvrCfg_ListenAddrHttp_I = "address to listen on for HTTP requests"
 
 // SvrCfg_EnableUnixSock
-var SvrCfg_EnableUnixSock = false
+var SvrCfg_EnableUnixSock = true
 var SvrCfg_EnableUnixSock_I = "disable or enable the UNIX socket RPC interface"
 
 // SvrCfg_EnableUnixSock
@@ -37,9 +41,7 @@ var SvrCfg_HttpsDomain = ""
 var SvrCfg_HttpsDomain_I = "which domain to use for TLS and AllowedHosts checks"
 
 // SvrCfg_HubMode
-var SvrCfg_HubMode = func(val string) error {
-	return nil
-}
+var SvrCfg_HubMode = db.ModeUnknown
 var SvrCfg_HubMode_I = "the privacy mode(values: open, community, restricted) determining hub access controls"
 
 //SvrCfg_AliasesAsSubdomains

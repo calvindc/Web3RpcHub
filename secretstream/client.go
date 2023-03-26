@@ -18,7 +18,7 @@ type Client struct {
 
 // NewClient creates a new Client with the passed keyPair and appKey
 func NewClient(kp secrethandshake.EdKeyPair, appKey []byte) (*Client, error) {
-	// TODO: consistancy check?!..
+	// TODO: consistancy check
 	return &Client{
 		appKey: appKey,
 		kp:     kp,
@@ -35,7 +35,7 @@ func (c *Client) ConnWrapper(pubKey []byte) netwrap.ConnWrapper {
 
 		errconn := make(chan error)
 		go func() {
-			errconn <- secrethandshake.Client(state, conn)
+			errconn <- secrethandshake.ClientShack(state, conn)
 			close(errconn)
 		}()
 

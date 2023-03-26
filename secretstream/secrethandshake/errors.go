@@ -31,7 +31,6 @@ func (e ErrProtocol) Error() string {
 }
 
 // ErrProcessing is returned if I/O fails during the handshake
-// TODO: supply Unwrap() for cause?
 type ErrProcessing struct {
 	where string
 	cause error
