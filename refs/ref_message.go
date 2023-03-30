@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// MessageRef defines the content addressed version of a ssb message, identified it's hash.
+// MessageRef defines the content addressed version of a hub message, identified it's hash.
 type MessageRef struct {
 	hash [32]byte
 	rope RefRope
@@ -60,12 +60,12 @@ func (mr MessageRef) ShortSigil() string {
 	return fmt.Sprintf("<%%%s.%s>", base64.StdEncoding.EncodeToString(mr.hash[:3]), mr.rope)
 }
 
-// URI returns the reference in ssb-uri form, no matter it's type
+// URI returns the reference in hub-uri form, no matter it's type
 func (mr MessageRef) URI() string {
 	return CanonicalURI{mr}.String()
 }
 
-// String implements the refs.Ref interface and returns a ssb-uri or sigil depending on the type
+// String implements the refs.Ref interface and returns a hub-uri or sigil depending on the type
 func (mr MessageRef) String() string {
 	if mr.rope == RefMessageWEB3R || mr.rope == RefCloakedGroup {
 		return mr.Sigil()

@@ -139,9 +139,9 @@ func ParseKeyPair(r io.Reader) (*KeyPair, error) {
 		return nil, fmt.Errorf("Keys: parse base64 decode of private part failed: %w", err)
 	}
 
-	ssbkp := KeyPair{
+	kp := KeyPair{
 		Feed: s.ID,
 		Pair: *pair,
 	}
-	return &ssbkp, nil
+	return &kp, nil
 }

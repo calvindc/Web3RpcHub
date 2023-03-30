@@ -22,6 +22,7 @@ import (
 	"github.com/calvindc/Web3RpcHub/internal/network"
 	"github.com/calvindc/Web3RpcHub/internal/repository"
 	"github.com/calvindc/Web3RpcHub/internal/signalbridge"
+	"github.com/calvindc/Web3RpcHub/models/web/handlers"
 	"github.com/calvindc/Web3RpcHub/service"
 	log2 "github.com/go-kit/kit/log"
 	"github.com/go-kit/kit/log/level"
@@ -48,26 +49,6 @@ type Cfdata struct {
 	deAppKey []byte
 	portHttp int
 }
-
-/*var app = cli.App{
-	Name:    os.Args[0],
-	Usage:   "web3' peer communication management",
-	Version: Version,
-
-	Flags: []cli.Flag{
-		&cli.BoolFlag{Name: "print-version", Usage: config.SvrCfg_PrintVersion_I},
-		&cli.StringFlag{Name: "secret-handsharke-key", Usage: config.SvrCfg_SecretHandsharkeKey_I, Value: config.SvrCfg_SecretHandsharkeKey},
-		&cli.StringFlag{Name: "listen-addr-shsmux", Usage: SvrCofg_ListenAddrShsMux_I, Value: SvrCofg_ListenAddrShsMux},
-		&cli.StringFlag{Name: "listen-addr-http", Usage: config.SvrCfg_ListenAddrHttp, Value: config.SvrCfg_ListenAddrHttp},
-		&cli.BoolFlag{Name: "enable-unixsock", Usage: config.SvrCfg_EnableUnixSock_I},
-		&cli.StringFlag{Name: "repo-dir", Usage: config.SvrCfg_RepoDir, Value: config.SvrCfg_RepoDir_I},
-		&cli.StringFlag{Name: "listen-addr-metrics-pprof", Usage: config.SvrCfg_ListenAddrMetricsPprof, Value: config.SvrCfg_ListenAddrMetricsPprof},
-		&cli.StringFlag{Name: "https-domain", Usage: config.SvrCfg_HttpsDomain_I, Value: config.SvrCfg_HttpsDomain},
-		&cli.StringFlag{Name: "hub-mode", Usage: config.SvrCfg_HubMode_I,Value:config.SvrCfg_HubMode},
-		&cli.BoolFlag{Name: "aliases-as-subdomains", Usage: config.SvrCfg_AliasesAsSubdomains_I},
-	},
-	Before:
-}*/
 
 func CheckAndLog(err error) {
 	if err != nil {
@@ -152,13 +133,19 @@ func Runhubsvr() error {
 	go func() {
 		sig := <-c
 		level.Warn(log).Log("event", "killed", "msg", "received signal, shutting down", "signal", sig.String())
-		cancel()
 
-		time.Sleep(3 * time.Second)
+		cancel()
+		time.Sleep(1 * time.Second)
+		hubsrv.ServShutDown()
+
+		time.Sleep(1 * time.Second)
+		err = httpLis.Close()
+		CheckAndLog(err)
+
 		err := hubsrv.ShotDown()
 		CheckAndLog(err)
 
-		time.Sleep(3 * time.Second)
+		time.Sleep(1 * time.Second)
 		os.Exit(0)
 	}()
 
@@ -171,104 +158,71 @@ func Runhubsvr() error {
 		return err
 	}
 
-	webHandler := &http.ServeMux{}
 	var httpHandler http.Handler //add all /mux_user_api_handler(1,2,3...)
+	webHandler, err := handlers.NewWebHandler(
+		log2.With(log, "package", "web"),
+		repository.New(repoDir),
+		networkInfo,
+		hubsrv.StateManager,
+		hubsrv.Network,
+		signal_bridge,
+		handlers.Databases{
+			Aliases:       hubdb.Aliases,
+			AuthFallback:  hubdb.AuthFallback,
+			AuthWithToken: hubdb.AuthWitToken,
+			Config:        hubdb.Config,
+			DeniedKeys:    hubdb.DeniedKeys,
+			Invites:       hubdb.Invites,
+			Notices:       hubdb.Notices,
+			Members:       hubdb.Members,
+			PinnedNotices: hubdb.PinnedNotices,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create HTTPdashboard handler: %w", err)
+	}
 	httpHandler = httpRateLimiter.RateLimit(webHandler)
 	httpHandler = secureMiddleware.Handler(httpHandler)
 	httpHandler = hubsrv.Network.WebsockHandler(httpHandler)
 
+	// all init was successfull
 	level.Info(log).Log(
-		"event", "serving", "running...", httpLis.Addr().String())
-	/*fmt.Println("12")
-	go func() {
-		fiveDays := 3 * time.Second
-		ticker := time.NewTicker(fiveDays)
-		for range ticker.C {
-			fmt.Println(time.Now().String())
+		"event", "serving",
+		"ID", hubsrv.Whoami().String(),
+		"shsmuxaddr", config.SvrCofg_ListenAddrShsMux,
+		"httpaddr", config.SvrCfg_ListenAddrHttp,
+		"version", Appversion, "commit", Commit,
+	)
+
+	// 启动hub的http连接服务
+	httpSrv := http.Server{
+		Addr:              httpLis.Addr().String(),
+		ReadHeaderTimeout: 15 * time.Second, //to avoid Slowloris attacks
+		WriteTimeout:      1 * time.Minute,
+		IdleTimeout:       1 * time.Minute,
+		Handler:           httpHandler,
+	}
+	err = httpSrv.Serve(httpLis)
+	if err != nil {
+		level.Error(log).Log("event", "http serve failed", "err", err)
+	}
+
+	// 启动hub的shs+rpc连接服务
+	for {
+		err := hubsrv.Network.Serve(ctx)
+		if err != nil {
+			level.Warn(log).Log("event", "hubsrv node.Serve returned", "err", err)
 		}
-	}()
-
-	for {
-		time.Sleep(time.Second)
-	}*/
-
-	/*fiveDays := 3 * time.Second
-	ticker := time.NewTicker(fiveDays)
-	go func() { // server might not restart as often
-
-		count := 0
-		for {
-			t := <-ticker.C
-			count++
-			fmt.Println("now=", t, "count=", count)
-
-			if count == 5 {
-				fmt.Println("now=%w", t)
-				ticker.Stop()
-				//runtime.Goexit()
-				os.Exit(1)
-			}
-		}
-	}()
-	for {
-		time.Sleep(time.Second)
-	}*/
-
-	/*ticker := time.NewTicker(time.Second * 2)
-	c := make(chan bool)
-	go func() {
-		time.Sleep(time.Second * 7)
-		c <- true
-	}()
-	for {
+		time.Sleep(1 * time.Second)
 		select {
-		case <-c:
-			fmt.Println("completed")
-			return nil
-
-		case tm := <-ticker.C:
-			fmt.Println(tm)
-		}
-	}*/
-
-	/*c := make(chan string)
-	go func() {
-		for {
-			time.Sleep(time.Second)
-			c <- time.Now().String()
-		}
-	}()
-	for {
-		select {
-		case str := <-c:
-			fmt.Println("reveice ", str)
-		case <-time.After(time.Second * 2):
-			fmt.Println("time out")
-			c <- "1"
-		}
-	}*/
-
-	/*c := make(chan string, 10)
-	go func() {
-		time.Sleep(time.Second)
-		for {
-			<-c
-			fmt.Println("delete data:")
-			time.Sleep(5 * time.Second)
-		}
-	}()
-	for {
-		select {
-		case c <- "-1":
-
-			fmt.Println("add data: ", len(c))
-			//os.Exit(1)
-			time.Sleep(time.Second * 1)
-
+		case <-ctx.Done():
+			err := hubsrv.ShotDown()
+			return err
 		default:
-			fmt.Println("zi yuan hao jin")
-			//time.Sleep(time.Second)
-		}///home/ubuntu/ssb-server-js/photon-ssb
-	}*/
+
+		}
+
+	}
+
 	return nil
 }

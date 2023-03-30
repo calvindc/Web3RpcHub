@@ -71,7 +71,7 @@ func RegLogger(log log.Logger) Option {
 
 func RegContext(ctx context.Context) Option {
 	return func(s *HubServe) error {
-		s.servCtx, s.servShutDown = context.WithCancel(ctx)
+		s.servCtx, s.ServShutDown = context.WithCancel(ctx)
 		return nil
 	}
 }

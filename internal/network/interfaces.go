@@ -122,3 +122,13 @@ func (hed HubEndpoint) URLForAlias(a string) string {
 	}
 	return u.String()
 }
+
+// MultiserverAddress returns net:domain:muxport~shs:hubPubKeyInBase64
+func (hed HubEndpoint) MultiserverAddress() string {
+	addr, err := net.ResolveTCPAddr("tcp", hed.ListenAddressMUXRPC)
+	if err != nil {
+		panic(err)
+	}
+	var hubPubKey = base64.StdEncoding.EncodeToString(hed.HubID.PubKey())
+	return fmt.Sprintf("net:%s:%d~shs:%s", hed.HttpsDomain, addr.Port, hubPubKey)
+}

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source ../../env.sh
-export CGO_ENABLED=0
+export CGO_ENABLED=1
 
 echo -e "\e[1;31m VERSION \e[0m" \\t $VERSION
 echo -e "\e[1;31m BUILD_DATE \e[0m" \\t $BUILD_DATE

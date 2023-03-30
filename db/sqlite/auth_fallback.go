@@ -6,8 +6,9 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/base64"
-	"errors"
 	"fmt"
+
+	"errors"
 
 	"github.com/calvindc/Web3RpcHub/db"
 	"github.com/calvindc/Web3RpcHub/db/sqlite/models"
@@ -31,7 +32,7 @@ var redirectPasswordAuthErr = errors2.ErrRedirect{
 }
 
 // Check receives the loging and password (in clear) and checks them accordingly.
-// Login might be a registered alias or a ssb id who belongs to a member.
+// Login might be a registered alias or a web3r id who belongs to a member.
 // If it's a valid combination it returns the user ID, or an error if they are not.
 func (af AuthFallback) Check(login, password string) (interface{}, error) {
 	ctx := context.Background()
@@ -46,13 +47,13 @@ func (af AuthFallback) Check(login, password string) (interface{}, error) {
 			return nil, err
 		}
 
-		// did not find an alias, try as ssb reference
+		// did not find an alias, try as web3r reference
 		member, err := models.Members(qm.Where("pub_key = ?", login)).One(ctx, af.db)
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, redirectPasswordAuthErr
 		}
 
-		// member found by ssb id, use their id
+		// member found by web3r id, use their id
 		memberID = member.ID
 	} else {
 		// found an alias, use the corresponding member ID

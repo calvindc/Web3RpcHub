@@ -77,7 +77,7 @@ func (m *HubNetManager) ListAsRefs() []refs.FeedRef {
 	for i, s := range lst {
 		fr, err := refs.ParseFeedRef(s)
 		if err != nil {
-			panic(fmt.Errorf("invalid feed ref in room state: %d: %s", i, err))
+			panic(fmt.Errorf("invalid feed ref in hub state: %d: %s", i, err))
 		}
 		rlst[i] = fr
 	}
@@ -87,7 +87,7 @@ func (m *HubNetManager) ListAsRefs() []refs.FeedRef {
 // AddEndpoint adds the endpoint to the hub
 func (hm *HubNetManager) AddEndpoint(who refs.FeedRef, edp cmuxrpc.Endpoint) {
 	hm.hubMu.Lock()
-	// add ref to to the room map
+	// add ref to to the hub map
 	hm.hubStats[who.String()] = edp
 	currentMembers := hm.hubStats.AsList()
 	hm.hubMu.Unlock()
@@ -106,11 +106,11 @@ func (hm *HubNetManager) Remove(who refs.FeedRef) {
 	hm.hubMu.Unlock()
 	// update all the connected tunnel.endpoints calls
 	hm.endpointsUpdater.Update(currentMembers)
-	// update all the connected room.attendants calls
+	// update all the connected hub.attendants calls
 	hm.participantsUpdater.Left(who)
 }
 
-// AlreadyAdded returns true if the peer was already added to the room.
+// AlreadyAdded returns true if the peer was already added to the hub.
 // if it isn't it will be added.
 func (hm *HubNetManager) AlreadyAdded(who refs.FeedRef, edp cmuxrpc.Endpoint) bool {
 	hm.hubMu.Lock()
@@ -133,10 +133,10 @@ func (hm *HubNetManager) AlreadyAdded(who refs.FeedRef, edp cmuxrpc.Endpoint) bo
 	return has
 }
 
-// Has returns true and the endpoint if the peer is in the room
+// Has returns true and the endpoint if the peer is in the hub
 func (hm *HubNetManager) Has(who refs.FeedRef) (cmuxrpc.Endpoint, bool) {
 	hm.hubMu.Lock()
-	// add ref to to the room map
+	// add ref to to the hub map
 	edp, has := hm.hubStats[who.String()]
 	hm.hubMu.Unlock()
 	return edp, has

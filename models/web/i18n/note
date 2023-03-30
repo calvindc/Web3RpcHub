@@ -1,0 +1,42 @@
+i18n:
+https://github.com/nicksnyder/go-i18n
+Supports pluralized strings for all 200+ languages in the Unicode Common Locale Data Repository (CLDR).
+Code and tests are automatically generated from CLDR data.
+
+The i18n package provides support for looking up messages according to a set of locale preferences.
+
+import "github.com/nicksnyder/go-i18n/v2/i18n"
+Create a Bundle to use for the lifetime of your application.
+
+bundle := i18n.NewBundle(language.English)
+Load translations into your bundle during initialization.
+
+bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+bundle.LoadMessageFile("es.toml")
+// If use go:embed
+//go:embed locale.*.toml
+var LocaleFS embed.FS
+
+bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
+bundle.LoadMessageFileFS(LocaleFS, "locale.es.toml")
+Create a Localizer to use for a set of language preferences.
+
+func(w http.ResponseWriter, r *http.Request) {
+    lang := r.FormValue("lang")
+    accept := r.Header.Get("Accept-Language")
+    localizer := i18n.NewLocalizer(bundle, lang, accept)
+}
+Use the Localizer to lookup messages.
+
+localizer.Localize(&i18n.LocalizeConfig{
+    DefaultMessage: &i18n.Message{
+        ID: "PersonCats",
+        One: "{{.Name}} has {{.Count}} cat.",
+        Other: "{{.Name}} has {{.Count}} cats.",
+    },
+    TemplateData: map[string]interface{}{
+        "Name": "Nick",
+        "Count": 2,
+    },
+    PluralCount: 2,
+}) // Nick has 2 cats.

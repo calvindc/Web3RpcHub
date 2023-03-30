@@ -24,6 +24,7 @@ import (
 	"github.com/calvindc/Web3RpcHub/internal/repository"
 	"github.com/calvindc/Web3RpcHub/internal/signalbridge"
 	"github.com/calvindc/Web3RpcHub/netwrap"
+	"github.com/calvindc/Web3RpcHub/refs"
 	"github.com/go-kit/kit/log"
 	"github.com/go-kit/log/level"
 )
@@ -33,7 +34,7 @@ type HubServe struct {
 
 	logger       log.Logger      //日志调度
 	servCtx      context.Context //hub service的上下文
-	servShutDown context.CancelFunc
+	ServShutDown context.CancelFunc
 	closers      frequently.Closer
 
 	closed      bool
@@ -125,7 +126,7 @@ func StartHubServ(hMembers db.MembersService, hDeniedKeys db.DeniedKeysService, 
 	svr.master = typemux.New(log.With(svr.logger, "mux", "master"))
 
 	if svr.servCtx == nil {
-		svr.servCtx, svr.servShutDown = context.WithCancel(context.Background())
+		svr.servCtx, svr.ServShutDown = context.WithCancel(context.Background())
 	}
 
 	svr.netInfo.HubID = svr.keyPair.Feed
@@ -165,7 +166,7 @@ func (svr *HubServe) ShotDown() error {
 
 	if svr.Network != nil {
 		if err := svr.Network.Close(); err != nil {
-			svr.closeErr = fmt.Errorf("sbot: failed to close own network node: %w", err)
+			svr.closeErr = fmt.Errorf("hub: failed to close own network node: %w", err)
 			return svr.closeErr
 		}
 		svr.Network.GetConnTracker().CloseAll()
@@ -176,4 +177,8 @@ func (svr *HubServe) ShotDown() error {
 		return svr.closeErr
 	}
 	return nil
+}
+
+func (svr *HubServe) Whoami() refs.FeedRef {
+	return svr.keyPair.Feed
 }

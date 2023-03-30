@@ -216,7 +216,7 @@ func (n PinnedNoticeName) String() string {
 	return string(n)
 }
 
-// These are the well known names that the room page will display
+// These are the well known names that the hub page will display
 const (
 	NoticeDescription   PinnedNoticeName = "NoticeDescription"
 	NoticeNews          PinnedNoticeName = "NoticeNews"

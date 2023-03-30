@@ -56,12 +56,12 @@ func (fr FeedRef) ShortSigil() string {
 	return fmt.Sprintf("<@%s.%s>", base64.StdEncoding.EncodeToString(fr.id[:3]), fr.rope)
 }
 
-// URI returns the reference in ssb-uri form, no matter it's type
+// URI returns the reference in uri form, no matter it's type
 func (fr FeedRef) URI() string {
 	return CanonicalURI{fr}.String()
 }
 
-// String implements the refs.Ref interface and returns a ssb-uri or sigil depending on the type
+// String implements the refs.Ref interface and returns a uri or sigil depending on the type
 func (fr FeedRef) String() string {
 	if fr.rope == RefFeedWEB3R {
 		return fr.Sigil()
@@ -125,14 +125,14 @@ func ParseFeedRef(str string) (FeedRef, error) {
 		if err != nil {
 			return emptyFeedRef, fmt.Errorf("failed to parse as URL: %s: %w", err, ErrInvalidRef)
 		}
-		if asURL.Scheme != "ssb" {
-			return emptyFeedRef, fmt.Errorf("expected ssb protocol scheme on URL: %q: %w", str, ErrInvalidRef)
+		if asURL.Scheme != "web3r" {
+			return emptyFeedRef, fmt.Errorf("expected web3 protocol scheme on URL: %q: %w", str, ErrInvalidRef)
 		}
-		asSSBURI, err := parseCaononicalURI(asURL.Opaque)
+		asURI, err := parseCaononicalURI(asURL.Opaque)
 		if err != nil {
 			return emptyFeedRef, err
 		}
-		feedRef, ok := asSSBURI.Feed()
+		feedRef, ok := asURI.Feed()
 		if !ok {
 			return emptyFeedRef, fmt.Errorf("Web3RURI is not a feed ref")
 		}

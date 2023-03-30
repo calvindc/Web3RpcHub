@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+
 	"errors"
 
 	"github.com/calvindc/Web3RpcHub/db"
@@ -107,7 +108,7 @@ func (a Aliases) findOne(ctx context.Context, by qm.QueryMod) (db.Alias, error) 
 		return found, err
 	}
 
-	// unpack models into roomdb type
+	// unpack models into hubdb type
 	found.ID = entry.ID
 	found.Name = entry.Name
 	found.Signature = entry.Signature

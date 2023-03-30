@@ -3,8 +3,9 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
+
+	"github.com/friendsofgo/errors"
 
 	"github.com/calvindc/Web3RpcHub/db"
 	"github.com/calvindc/Web3RpcHub/db/sqlite/models"
@@ -27,7 +28,7 @@ const protTokenLength = 32
 // It is used after a valid solution for a challenge was provided.
 func (a AuthWitToken) CreateToken(ctx context.Context, memberID int64) (string, error) {
 
-	var newToken = models.SIWSSBSession{
+	var newToken = models.SIWWEB3RSession{
 		MemberID: memberID,
 	}
 
@@ -49,7 +50,7 @@ func (a AuthWitToken) CreateToken(ctx context.Context, memberID int64) (string, 
 			newToken.Token = randutil.String(protTokenLength)
 
 			// insert the new token
-			cols := boil.Whitelist(models.SIWSSBSessionColumns.Token, models.SIWSSBSessionColumns.MemberID)
+			cols := boil.Whitelist(models.SIWWEB3RSessionColumns.Token, models.SIWWEB3RSessionColumns.MemberID)
 			err := newToken.Insert(ctx, tx, cols)
 			if err != nil {
 				var sqlErr sqlite3.Error
@@ -84,7 +85,7 @@ func (a AuthWitToken) CheckToken(ctx context.Context, token string) (int64, erro
 	var memberID int64
 
 	err := transact(a.db, func(tx *sql.Tx) error {
-		session, err := models.SIWSSBSessions(qm.Where("token = ?", token)).One(ctx, a.db)
+		session, err := models.SIWWEB3RSessions(qm.Where("token = ?", token)).One(ctx, a.db)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return db.ErrNotFound
@@ -113,14 +114,14 @@ func (a AuthWitToken) CheckToken(ctx context.Context, token string) (int64, erro
 
 // RemoveToken removes a single token from the database
 func (a AuthWitToken) RemoveToken(ctx context.Context, token string) error {
-	_, err := models.SIWSSBSessions(qm.Where("token = ?", token)).DeleteAll(ctx, a.db)
+	_, err := models.SIWWEB3RSessions(qm.Where("token = ?", token)).DeleteAll(ctx, a.db)
 	return err
 }
 
 // WipeTokensForMember deletes all tokens currently held for that member
 func (a AuthWitToken) WipeTokensForMember(ctx context.Context, memberID int64) error {
 	return transact(a.db, func(tx *sql.Tx) error {
-		_, err := models.SIWSSBSessions(qm.Where("member_id = ?", memberID)).DeleteAll(ctx, tx)
+		_, err := models.SIWWEB3RSessions(qm.Where("member_id = ?", memberID)).DeleteAll(ctx, tx)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return db.ErrNotFound

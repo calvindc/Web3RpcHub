@@ -16,7 +16,7 @@ type Ref interface {
 	// ShortSigil returns a truncated version of Sigil()
 	ShortSigil() string
 
-	// URI prints the reference as a ssb-uri, following https://github.com/ssb-ngi-pointer/ssb-uri-spec
+	// URI prints the reference as a web3r-uri
 	URI() string
 
 	fmt.Stringer
@@ -68,10 +68,10 @@ func ParseRef(str string) (Ref, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse as URL: %s: %w", err, ErrInvalidRefType)
 		}
-		if asURL.Scheme != "ssb" {
-			return nil, fmt.Errorf("expected ssb protocl scheme on URL: %q: %w", str, ErrInvalidRefType)
+		if asURL.Scheme != "web3r" {
+			return nil, fmt.Errorf("expected web3r protocl scheme on URL: %q: %w", str, ErrInvalidRefType)
 		}
-		asSSBURI, err := parseCaononicalURI(asURL.Opaque)
-		return asSSBURI.ref, err
+		asWeb3rURI, err := parseCaononicalURI(asURL.Opaque)
+		return asWeb3rURI.ref, err
 	}
 }

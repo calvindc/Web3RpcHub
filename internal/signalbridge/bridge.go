@@ -62,7 +62,7 @@ func (sb *SignalBridge) RegisterSession() string {
 
 // GetEventChannel returns the channel for the passed challenge from which future events can be read.
 // If sc doesn't exist, the 2nd argument is false.
-func (sb *SignalBridge) GetEventChan(sc string) (<-chan Event, bool) {
+func (sb *SignalBridge) GetEventChannel(sc string) (<-chan Event, bool) {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 	ch, has := sb.sessions[sc]

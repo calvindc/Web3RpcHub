@@ -21,7 +21,7 @@ const (
 	KindBlob
 )
 
-// URI is a SSB universal resource identifier.
+// URI is a universal resource identifier.
 // It can be a canonical link for a message, feed or blob.
 type URI interface {
 	fmt.Stringer
@@ -37,8 +37,8 @@ type URI interface {
 
 // Errors that might be returned by ParseURI
 var (
-	ErrNotAnURI         = errors.New("ssb: not a known URI scheme")
-	ErrNotACanonicalURI = errors.New("ssb: not a caononical URI")
+	ErrNotAnURI         = errors.New("web3: not a known URI scheme")
+	ErrNotACanonicalURI = errors.New("web3: not a caononical URI")
 )
 
 // ParseURI either returns a Canonical or an Experimental URI
@@ -48,7 +48,7 @@ func ParseURI(input string) (URI, error) {
 		return nil, fmt.Errorf("url.Parse failed: %w", err)
 	}
 
-	if u.Scheme != "ssb" {
+	if u.Scheme != "web3r" {
 		return nil, ErrNotAnURI
 	}
 
@@ -69,10 +69,10 @@ func parseCaononicalURI(input string) (CanonicalURI, error) {
 
 	data, err := base64.URLEncoding.DecodeString(parts[2])
 	if err != nil {
-		return c, fmt.Errorf("ssb-uri: expected valid base64 url data: %w", err)
+		return c, fmt.Errorf("uri: expected valid base64 url data: %w", err)
 	}
 
-	parts[0] = strings.TrimPrefix(parts[0], "ssb:")
+	parts[0] = strings.TrimPrefix(parts[0], "web3r:")
 
 	switch parts[0] {
 	case "message":
@@ -119,14 +119,13 @@ func parseCaononicalURI(input string) (CanonicalURI, error) {
 }
 
 // CanonicalURI currently defines 3 different kinds of URIs for Messages, Feeds and Blobs
-// See https://github.com/fraction/ssb-uri
 type CanonicalURI struct {
 	ref Ref
 }
 
 func (c CanonicalURI) String() string {
 	var u url.URL
-	u.Scheme = "ssb"
+	u.Scheme = "web3r"
 
 	var p string
 	switch rv := c.ref.(type) {
@@ -191,7 +190,6 @@ func (c CanonicalURI) Blob() (BlobRef, bool) {
 }
 
 // ExperimentalURI define magnet-like URIs based on query parameters
-// See https://github.com/ssb-ngi-pointer/ssb-uri-spec
 type ExperimentalURI struct {
 	params url.Values
 
@@ -202,7 +200,7 @@ type ExperimentalURI struct {
 
 func (e ExperimentalURI) String() string {
 	var u url.URL
-	u.Scheme = "ssb"
+	u.Scheme = "web3r"
 	u.Opaque = "experimental"
 
 	if e.lazyCanonical != nil {
@@ -231,7 +229,7 @@ func (e *ExperimentalURI) tryCanonicalRef() error {
 		return ErrNotACanonicalURI
 	}
 
-	c, err := parseCaononicalURI(strings.TrimPrefix(ref, "ssb:"))
+	c, err := parseCaononicalURI(strings.TrimPrefix(ref, "web3r:"))
 	if err != nil {
 		e.lazyErr = err
 		return ErrNotACanonicalURI

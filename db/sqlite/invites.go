@@ -20,7 +20,7 @@ import (
 // compiler assertion to ensure the struct fullfills the interface
 var _ db.InvitesService = (*Invites)(nil)
 
-// Invites implements the roomdb.InviteService.
+// Invites implements the db.InviteService.
 // Tokens are stored as sha256 hashes on disk to protect against attackers gaining database read-access.
 type Invites struct {
 	db *sql.DB
@@ -30,7 +30,7 @@ type Invites struct {
 
 // Create creates a new invite for a new member. It returns the token or an error.
 // createdBy is user ID of the admin or moderator who created it.
-// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites. (See https://github.com/ssbc/rooms2/issues/21)
+// aliasSuggestion is optional (empty string is fine) but can be used to disambiguate open invites.
 // The returned token is base64 URL encoded and has inviteTokenLength when decoded.
 func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 	var newInvite = models.Invite{
@@ -48,14 +48,14 @@ func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 			}
 
 			if config.PrivacyMode != db.ModeOpen {
-				return fmt.Errorf("roomdb: privacy mode not set to open but %s", config.PrivacyMode.String())
+				return fmt.Errorf("db: privacy mode not set to open but %s", config.PrivacyMode.String())
 			}
 
 			m, err := models.Members(qm.Where("role = ?", db.RoleAdmin)).One(ctx, tx)
 			if err != nil {
 				// we could insert something like a system user but should probably hit it from the members list then
 				if errors.Is(err, sql.ErrNoRows) {
-					return fmt.Errorf("roomdb: no admin user available to associate invite to")
+					return fmt.Errorf("db: no admin user available to associate invite to")
 				}
 				return err
 			}
@@ -88,7 +88,7 @@ func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 		}
 
 		if !inserted {
-			return errors.New("roomdb: failed to generate an invite token in a reasonable amount of time")
+			return errors.New("db: failed to generate an invite token in a reasonable amount of time")
 		}
 
 		return nil
@@ -101,7 +101,7 @@ func (i Invites) Create(ctx context.Context, createdBy int64) (string, error) {
 	return base64.URLEncoding.EncodeToString(tokenBytes), nil
 }
 
-// Consume checks if the passed token is still valid. If it is it adds newMember to the members of the room and invalidates the token.
+// Consume checks if the passed token is still valid. If it is it adds newMember to the members of the hub and invalidates the token.
 // If the token isn't valid, it returns an error.
 // Tokens need to be base64 URL encoded and when decoded be of inviteTokenLength.
 func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedRef) (db.Invite, error) {
@@ -164,7 +164,7 @@ func (i Invites) Consume(ctx context.Context, token string, newMember refs.FeedR
 func deleteConsumedInvites(tx boil.ContextExecutor) error {
 	_, err := models.Invites(qm.Where("active = false")).DeleteAll(context.Background(), tx)
 	if err != nil {
-		return fmt.Errorf("roomdb: failed to delete used invites: %w", err)
+		return fmt.Errorf("db: failed to delete used invites: %w", err)
 	}
 	return nil
 }
@@ -299,7 +299,7 @@ func getHashedToken(b64tok string) (string, error) {
 	}
 
 	if n := len(tokenBytes); n != inviteTokenLength {
-		return "", fmt.Errorf("roomdb: invalid invite token length (only got %d bytes)", n)
+		return "", fmt.Errorf("db: invalid invite token length (only got %d bytes)", n)
 	}
 
 	// hash the binary of the passed token

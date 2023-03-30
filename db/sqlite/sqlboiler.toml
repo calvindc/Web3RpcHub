@@ -1,5 +1,5 @@
 [sqlite3]
-# go test in the roomdb/sqlite package will create this
+# go test in the db/sqlite package will create this
 dbname = "hub.db"
 # Removes migrations table, the name column from the addresses table, and
 # secret_col of any table from being generated. Foreign keys that reference tables

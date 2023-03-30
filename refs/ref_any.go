@@ -35,12 +35,12 @@ func (ar AnyRef) Sigil() string {
 	return ar.r.Sigil()
 }
 
-// URI returns the reference in ssb-uri form, no matter it's type
+// URI returns the reference in hub-uri form, no matter it's type
 func (ar AnyRef) URI() string {
 	return CanonicalURI{ar}.String()
 }
 
-// String implements the refs.Ref interface and returns a ssb-uri or sigil depending on the type
+// String implements the refs.Ref interface and returns a hub-uri or sigil depending on the type
 func (ar AnyRef) String() string {
 	return ar.r.String()
 }
@@ -123,7 +123,7 @@ func (ar *AnyRef) UnmarshalJSON(b []byte) error {
 
 	asURI, err := parseCaononicalURI(parsedURL.Opaque)
 	if err != nil {
-		return fmt.Errorf("Web3R/anyRef: parsing (%q) as ssb-uri failed: %w", parsedURL.Opaque, err)
+		return fmt.Errorf("Web3R/anyRef: parsing (%q) as hub-uri failed: %w", parsedURL.Opaque, err)
 	}
 
 	ar.r = asURI.ref

@@ -50,12 +50,12 @@ func (br BlobRef) ShortSigil() string {
 	return fmt.Sprintf("<&%s.%s>", base64.StdEncoding.EncodeToString(br.hash[:3]), br.rope)
 }
 
-// URI returns the reference in ssb-uri form, no matter it's type
+// URI returns the reference in hub-uri form, no matter it's type
 func (br BlobRef) URI() string {
 	return CanonicalURI{br}.String()
 }
 
-// String implements the refs.Ref interface and returns a ssb-uri or sigil depending on the type
+// String implements the refs.Ref interface and returns a hub-uri or sigil depending on the type
 func (br BlobRef) String() string {
 	if br.rope == RefBlobWEB3R {
 		return br.Sigil()

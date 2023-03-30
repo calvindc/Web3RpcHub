@@ -11,16 +11,16 @@ import (
 )
 
 // ErrSessionTerminated 如果调用Terminate()或连接断开，返回ErrSessionTerminated
-var ErrSessionTerminated = errors.New("muxrpc: session terminated")
+var ErrSessionTerminated = errors.New("cmuxrpc: session terminated")
 
-var errSinkClosed = errors.New("muxrpc: pour to closed sink")
+var errSinkClosed = errors.New("cmuxrpc: pour to closed sink")
 
 type ErrNoSuchMethod struct {
 	Method Method
 }
 
 func (e ErrNoSuchMethod) Error() string {
-	return fmt.Sprintf("muxrpc: no such command: %s", e.Method)
+	return fmt.Sprintf("cmuxrpc: no such command: %s", e.Method)
 }
 
 // CallError is returned when a call fails
@@ -31,7 +31,7 @@ type CallError struct {
 }
 
 func (e CallError) Error() string {
-	return fmt.Sprintf("muxrpc CallError: %s - %s", e.Name, e.Message)
+	return fmt.Sprintf("cmuxrpc CallError: %s - %s", e.Name, e.Message)
 }
 
 func parseError(data []byte) (*CallError, error) {
@@ -39,7 +39,7 @@ func parseError(data []byte) (*CallError, error) {
 
 	err := json.Unmarshal(data, &e)
 	if err != nil {
-		return nil, fmt.Errorf("muxrpc: failed to unmarshal error packet: %w", err)
+		return nil, fmt.Errorf("cmuxrpc: failed to unmarshal error packet: %w", err)
 	}
 
 	// There are also TypeErrors and numerous other things we might get from this..
@@ -53,7 +53,7 @@ func parseError(data []byte) (*CallError, error) {
 type ErrWrongStreamType struct{ ct CallType }
 
 func (wst ErrWrongStreamType) Error() string {
-	return fmt.Sprintf("muxrpc: wrong stream type: %s", wst.ct)
+	return fmt.Sprintf("cmuxrpc: wrong stream type: %s", wst.ct)
 }
 
 // IsSinkClosed should be moved to luigi to gether with the error

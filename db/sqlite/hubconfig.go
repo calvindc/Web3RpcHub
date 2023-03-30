@@ -12,11 +12,11 @@ import (
 
 var _ db.HubConfig = (*Config)(nil)
 
-// the database will only ever store one row, which contains all the room settings
+// the database will only ever store one row, which contains all the hub settings
 const configRowID = 0
 
 /* Config basically enables long-term memory for the server when it comes to storing settings. Currently, the only
-* stored settings is the privacy mode of the room.
+* stored settings is the privacy mode of the hub.
  */
 type Config struct {
 	db *sql.DB

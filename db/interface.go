@@ -17,7 +17,7 @@ type HubConfig interface {
 }
 
 type AuthFallbackService interface {
-	// 对接收到的用户名和密文明文进行检查登录名可能是别名或者ssb-id,有效返回用户id
+	// 对接收到的用户名和密文明文进行检查登录名可能是别名或者hub-id,有效返回用户id
 	auth.Auther
 	// SetPassword 创建或更新回滚此用户的登录密码
 	SetPassword(_ context.Context, memberID int64, password string) error
